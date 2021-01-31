@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import db from "../db";
 import Login from "./Login";
-import Game from "./Game";
 
 const LoginFunc = () => {
   const [user, setUser] = useState("");
