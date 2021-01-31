@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const server = require("http").Server(app);
-io = require("socket.io")(server);
+const io = require("socket.io")(server);
 
 const rooms = {};
 
@@ -54,7 +54,51 @@ io.on("connection", function (socket) {
     // emit a message to all players about the player that moved
     socket.to(roomId).emit("playerMoved", players[socket.id]);
   });
+
+    // Video chat features
+    // User attempts to join a room
+    socket.on('join', function (roomName) {
+      let rooms = io.sockets.adapter.rooms;
+      let room = rooms.get(roomName);
+
+      if (!room) {
+        socket.join(roomName);
+        socket.emit('created');
+      } else if (room.size === 1) {
+        //room.size === 1 when one person is inside the room.
+        socket.join(roomName);
+        socket.emit('joined');
+      } else {
+        //when there are already two people inside the room.
+        socket.emit('full');
+      }
+    });
+
+    //Triggered when the person who joined the room is ready to communicate.
+    socket.on('ready', function (roomName) {
+      socket.broadcast.to(roomName).emit('ready'); //Informs the other peer in the room.
+    });
+
+    //Triggered when server gets an icecandidate from a peer in the room.
+
+    socket.on('candidate', function (candidate, roomName) {
+      socket.broadcast.to(roomName).emit('candidate', candidate); //Sends Candidate to the other peer in the room.
+    });
+
+    //Triggered when server gets an offer from a peer in the room.
+
+    socket.on('offer', function (offer, roomName) {
+      socket.broadcast.to(roomName).emit('offer', offer); //Sends Offer to the other peer in the room.
+    });
+
+    //Triggered when server gets an answer from a peer in the room.
+
+    socket.on('answer', function (answer, roomName) {
+      socket.broadcast.to(roomName).emit('answer', answer); //Sends Answer to the other peer in the room.
+    });
 });
+
+
 
 server.listen(3001, function () {
   console.log(`Listening on ${server.address().port}`);

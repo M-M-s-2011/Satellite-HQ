@@ -1,25 +1,27 @@
-import React, { useState } from "react";
-import Phaser from "phaser";
-import { Game } from "./game";
+import React, { useState } from 'react';
+import Phaser from 'phaser';
+import { Game } from './game';
+import ChatLobby from './components/ChatLobby';
 import {
   BrowserRouter as Router,
   Switch,
   Route,
   Link,
   useParams,
-} from "react-router-dom";
-import axios from "axios";
-import "./App.css";
+} from 'react-router-dom';
+import axios from 'axios';
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
+    <div className='App'>
       <Router>
         <Switch>
-          <Route exact path="/">
+          <Route exact path='/'>
             <Home />
           </Route>
-          <Route exact path="/space/:id">
+          <Route exact path='/chat' component={ChatLobby} />
+          <Route exact path='/space/:id'>
             <Space />
           </Route>
         </Switch>
@@ -31,7 +33,7 @@ function App() {
 function Home() {
   // Basic Home Page
   // React Hooks
-  const [spaceId, setSpaceId] = useState("");
+  const [spaceId, setSpaceId] = useState('');
   return (
     <div>
       <input
