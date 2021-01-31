@@ -8,6 +8,7 @@ import {
   Link,
   useParams,
 } from "react-router-dom";
+import axios from "axios";
 import "./App.css";
 
 function App() {
@@ -28,6 +29,8 @@ function App() {
 }
 
 function Home() {
+  // Basic Home Page
+  // React Hooks
   const [spaceId, setSpaceId] = useState("");
   return (
     <div>
@@ -44,9 +47,7 @@ function Space() {
   // We can use the `useParams` hook here to access
   // the space id
   let { id } = useParams();
-  console.log(id);
-
-  return <Game />;
+  return <Game spaceId={id} />;
 }
 
 export default App;
