@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import db from "../db";
+import firebase from "firebase";
 
 const GoogleLogin = () => {
   const [isLogin, setIsLogin] = useState(false);
   const [user, setUser] = useState("");
 
   const onSubmit = () => {
-    var provider = new db.auth.GoogleAuthProvider();
+    var provider = new firebase.auth.GoogleAuthProvider();
     db.auth()
       .signInWithPopup(provider)
       .then((result) => {
@@ -35,13 +36,9 @@ const GoogleLogin = () => {
   });
   return (
     <div>
-      {!isLogin ? (
-        <button type="button" className="googleBtn" onClick={onSubmit}>
-          Login with Google!
-        </button>
-      ) : (
-        ""
-      )}
+      <button type="button" className="googleBtn" onClick={onSubmit}>
+        Login with Google!
+      </button>
     </div>
   );
 };

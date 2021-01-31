@@ -63,7 +63,6 @@ const LoginFunc = () => {
   const authListener = () => {
     db.auth().onAuthStateChanged((user) => {
       if (user) {
-        clearInputs();
         setUser(user);
       } else {
         setUser("");
