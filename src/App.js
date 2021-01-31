@@ -1,11 +1,12 @@
-import React from "react";
-import Phaser from "phaser";
+import React from 'react';
+import Phaser from 'phaser';
+import io from 'socket.io';
 
-import "./App.css";
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
+    <div className='App'>
       <Game />
     </div>
   );
@@ -33,13 +34,13 @@ class Game extends React.Component {
   gameInit() {
     var config = {
       type: Phaser.WEBGL,
-      width: "100%",
-      height: "100%",
-      backgroundColor: "#2d2d2d",
-      parent: "phaser",
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#2d2d2d',
+      parent: 'phaser',
       pixelArt: true,
       physics: {
-        default: "arcade",
+        default: 'arcade',
         arcade: { gravity: { y: 0 } },
       },
       scene: {
@@ -59,11 +60,11 @@ class Game extends React.Component {
     // We store the Component's this to access it in the scene
     const self = this;
     return function () {
-      this.load.image("tiles", "assets/catastrophi_tiles_16.png");
-      this.load.image("tiles_red", "assets/catastrophi_tiles_16_red.png");
-      this.load.image("tiles_blue", "assets/catastrophi_tiles_16_blue.png");
-      this.load.tilemapCSV("map", "assets/catastrophi_level2.csv");
-      this.load.spritesheet("player", "assets/spaceman.png", {
+      this.load.image('tiles', 'assets/catastrophi_tiles_16.png');
+      this.load.image('tiles_red', 'assets/catastrophi_tiles_16_red.png');
+      this.load.image('tiles_blue', 'assets/catastrophi_tiles_16_blue.png');
+      this.load.tilemapCSV('map', 'assets/catastrophi_level2.csv');
+      this.load.spritesheet('player', 'assets/spaceman.png', {
         frameWidth: 16,
         frameHeight: 16,
       });
@@ -71,13 +72,14 @@ class Game extends React.Component {
   }
 
   create() {
+    this.socket = io();
     const self = this;
     return function (data) {
       function updateHelpText() {
         self.helpText.setText(
-          "Arrow keys to move." +
-            "\nPress 1/2/3 to change the tileset texture." +
-            "\nCurrent texture: " +
+          'Arrow keys to move.' +
+            '\nPress 1/2/3 to change the tileset texture.' +
+            '\nCurrent texture: ' +
             self.currentTileset
         );
       }
@@ -99,11 +101,11 @@ class Game extends React.Component {
 
       // When loading a CSV map, make sure to specify the tileWidth and tileHeight
       self.map = this.make.tilemap({
-        key: "map",
+        key: 'map',
         tileWidth: 16,
         tileHeight: 16,
       });
-      var tileset = self.map.addTilesetImage("tiles_red");
+      var tileset = self.map.addTilesetImage('tiles_red');
       var layer = self.map.createLayer(0, tileset, 0, 0);
       layer.setScale(2);
 
@@ -111,9 +113,9 @@ class Game extends React.Component {
       self.map.setCollisionBetween(54, 83);
 
       this.input.keyboard.on(
-        "keydown-ONE",
+        'keydown-ONE',
         function (event) {
-          var texture = this.sys.textures.get("tiles_red");
+          var texture = this.sys.textures.get('tiles_red');
           self.currentTileset = 1;
           tileset.setImage(texture);
           updateHelpText();
@@ -122,9 +124,9 @@ class Game extends React.Component {
       );
 
       this.input.keyboard.on(
-        "keydown-TWO",
+        'keydown-TWO',
         function (event) {
-          var texture = this.sys.textures.get("tiles_blue");
+          var texture = this.sys.textures.get('tiles_blue');
           self.currentTileset = 2;
           tileset.setImage(texture);
           updateHelpText();
@@ -133,9 +135,9 @@ class Game extends React.Component {
       );
 
       this.input.keyboard.on(
-        "keydown-THREE",
+        'keydown-THREE',
         function (event) {
-          var texture = this.sys.textures.get("tiles");
+          var texture = this.sys.textures.get('tiles');
           self.currentTileset = 3;
           tileset.setImage(texture);
           updateHelpText();
@@ -144,20 +146,20 @@ class Game extends React.Component {
       );
 
       this.anims.create({
-        key: "left",
-        frames: this.anims.generateFrameNumbers("player", { start: 8, end: 9 }),
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('player', { start: 8, end: 9 }),
         frameRate: 10,
         repeat: -1,
       });
       this.anims.create({
-        key: "right",
-        frames: this.anims.generateFrameNumbers("player", { start: 1, end: 2 }),
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('player', { start: 1, end: 2 }),
         frameRate: 10,
         repeat: -1,
       });
       this.anims.create({
-        key: "up",
-        frames: this.anims.generateFrameNumbers("player", {
+        key: 'up',
+        frames: this.anims.generateFrameNumbers('player', {
           start: 11,
           end: 13,
         }),
@@ -165,13 +167,13 @@ class Game extends React.Component {
         repeat: -1,
       });
       this.anims.create({
-        key: "down",
-        frames: this.anims.generateFrameNumbers("player", { start: 4, end: 6 }),
+        key: 'down',
+        frames: this.anims.generateFrameNumbers('player', { start: 4, end: 6 }),
         frameRate: 10,
         repeat: -1,
       });
 
-      self.player = this.physics.add.sprite(100, 100, "player", 1).setScale(2);
+      self.player = this.physics.add.sprite(100, 100, 'player', 1).setScale(2);
       self.player.setSize(10, 10, false);
 
       // Set up the player to collide with the tilemap layer. Alternatively, you can manually run
@@ -188,16 +190,16 @@ class Game extends React.Component {
 
       self.debugGraphics = this.add.graphics();
 
-      this.input.keyboard.on("down_67", function (event) {
+      this.input.keyboard.on('down_67', function (event) {
         self.showDebug = !self.showDebug;
         drawDebug();
       });
 
       self.cursors = this.input.keyboard.createCursorKeys();
 
-      self.helpText = this.add.text(16, 16, "", {
-        fontSize: "20px",
-        fill: "#ffffff",
+      self.helpText = this.add.text(16, 16, '', {
+        fontSize: '20px',
+        fill: '#ffffff',
       });
       self.helpText.setScrollFactor(0);
       updateHelpText();
@@ -222,13 +224,13 @@ class Game extends React.Component {
       }
       // Update the animation last and give left/right animations precedence over up/down animations
       if (self.cursors.left.isDown) {
-        self.player.anims.play("left", true);
+        self.player.anims.play('left', true);
       } else if (self.cursors.right.isDown) {
-        self.player.anims.play("right", true);
+        self.player.anims.play('right', true);
       } else if (self.cursors.up.isDown) {
-        self.player.anims.play("up", true);
+        self.player.anims.play('up', true);
       } else if (self.cursors.down.isDown) {
-        self.player.anims.play("down", true);
+        self.player.anims.play('down', true);
       } else {
         self.player.anims.stop();
       }
@@ -243,7 +245,7 @@ class Game extends React.Component {
 
   render() {
     // Phaser target element
-    return <div id="phaser"></div>;
+    return <div id='phaser'></div>;
   }
 }
 
