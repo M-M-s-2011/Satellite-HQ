@@ -233,6 +233,31 @@ export class Game extends React.Component {
           });
       });
 
+      this.socket.on("joined", function () {
+        // creator = false;
+        let videoChatRoom = document.getElementById("video-chat-room");
+        let userVideo = document.getElementById("user-video");
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: true,
+            video: { width: 1280, height: 720 },
+          })
+          .then(function (stream) {
+            /* use the stream */
+            // userStream = stream;
+            videoChatRoom.style = "display:flex";
+            userVideo.srcObject = stream;
+            userVideo.onloadedmetadata = function (e) {
+              userVideo.play();
+            };
+            this.socket.emit("ready", "MyRoom");
+          })
+          .catch(function (err) {
+            /* handle the error */
+            alert("Couldn't Access User Media");
+          });
+      });
+
       self.map.setCollisionBetween(54, 83);
 
       // with keys 1 2 and 3 titlesets change image
