@@ -37,7 +37,7 @@ class VideoChatContainer extends React.Component {
     // getting local video stream
     const localStream = await initiateLocalStream();
     this.localVideoRef.srcObject = localStream;
-
+    //creates local connection
     const localConnection = await initiateConnection();
 
     this.setState({

@@ -18,6 +18,7 @@ export const createOffer = async (
   }
 };
 
+//starts the webcam on our page
 export const initiateLocalStream = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -29,13 +30,15 @@ export const initiateLocalStream = async () => {
     console.error(exception);
   }
 };
+
+//creating a connection
 export const initiateConnection = async () => {
   try {
     // using Google public stun server
     var configuration = {
       iceServers: [{ urls: "stun:stun2.1.google.com:19302" }],
     };
-
+    //creates the connection
     const conn = new RTCPeerConnection(configuration);
 
     return conn;
