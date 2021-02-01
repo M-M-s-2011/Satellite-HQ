@@ -122,6 +122,16 @@ export class Game extends React.Component {
 
   create() {
     const self = this;
+
+    function updateHelpText() {
+      self.helpText.setText(
+        "WASD keys to move." +
+          "\nPress 1/2/3 to change the tileset texture." +
+          "\nCurrent texture: " +
+          self.currentTileset
+      );
+    }
+
     return function (data) {
       function drawDebug() {
         self.debugGraphics.clear();
