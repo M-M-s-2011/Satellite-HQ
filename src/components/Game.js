@@ -26,6 +26,13 @@ export class Game extends React.Component {
     this.showDebug = false;
     this.currentTileset = 1;
     this.videoDistanceThreshold = 70;
+    this.inChat = false;
+    this.socket = io({
+      // query === /space/:whatIsWrittenInHere
+      query: {
+        spaceId: this.spaceId,
+      },
+    });
   }
 
   gameInit() {
@@ -112,6 +119,12 @@ export class Game extends React.Component {
             distance
           )} pixels away!`
         );
+        if (!this.inChat) {
+          this.inChat = true;
+          this.socket.emit("join", "MyRoom");
+        }
+        //Add handler for joining video chat
+        //Container
         // TODO: Trigger chatroom between players here
       } else {
         // TODO: Remove chatroom between players here
@@ -161,12 +174,14 @@ export class Game extends React.Component {
       // add more players to the same group
       this.otherPlayers = this.physics.add.group();
 
-      this.socket = io({
-        // query === /space/:whatIsWrittenInHere
-        query: {
-          spaceId: self.spaceId,
-        },
-      });
+      // this.socket = io({
+      //   // query === /space/:whatIsWrittenInHere
+      //   query: {
+      //     spaceId: self.spaceId,
+      //   },
+      // });
+      console.log("self.socket", self.socket);
+      this.socket = self.socket;
       this.socket.on("currentPlayers", (players) => {
         Object.keys(players).forEach((id) => {
           if (players[id].playerId === this.socket.id) {
@@ -196,6 +211,26 @@ export class Game extends React.Component {
           }
         });
         self.onNearbyPlayers(self.player, this.otherPlayers);
+      });
+      //SAFEWORD CANTALOUPE
+      this.socket.on("created", function () {
+        let videoChatRoom = document.getElementById("video-chat-room");
+        let userVideo = document.getElementById("user-video");
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: false,
+            video: { width: 200, height: 200 },
+          })
+          .then(function (stream) {
+            videoChatRoom.style = "display:flex";
+            userVideo.srcObject = stream;
+            userVideo.onloadedmetadata = function (e) {
+              userVideo.play();
+            };
+          })
+          .catch(function (err) {
+            alert("Couldn't access media");
+          });
       });
 
       self.map.setCollisionBetween(54, 83);
