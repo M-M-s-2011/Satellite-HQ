@@ -180,7 +180,7 @@ export class Game extends React.Component {
       //     spaceId: self.spaceId,
       //   },
       // });
-      console.log("self.socket", self.socket);
+      // console.log("self.socket", self.socket);
       this.socket = self.socket;
       this.socket.on("currentPlayers", (players) => {
         Object.keys(players).forEach((id) => {
