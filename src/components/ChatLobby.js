@@ -1,29 +1,29 @@
 /* eslint-disable handle-callback-err */
-import React from 'react';
-import io from 'socket.io-client';
+import React from "react";
+import io from "socket.io-client";
 
 const socket = io(window.location.origin);
 let creator = true;
 let userStream;
-let videoChatRoom = document.getElementById('video-chat-room');
-let userVideo = document.getElementById('user-video');
-let peerVideo = document.getElementById('peer-video');
-let leaveRoomButton = document.getElementById('leave-room-button');
+let videoChatRoom = document.getElementById("video-chat-room");
+let userVideo = document.getElementById("user-video");
+let peerVideo = document.getElementById("peer-video");
+let leaveRoomButton = document.getElementById("leave-room-button");
 let roomName;
 const iceServers = {
   iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
   ],
 };
 let rtcPeerConnection = null;
 
-export default class ChatLobby extends React.Component {
+export class ChatLobby extends React.Component {
   constructor() {
     super();
     this.state = {
-      roomName: '',
-      style: { display: 'flex' },
+      roomName: "",
+      style: { display: "flex" },
     };
     this.handleJoin = this.handleJoin.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -40,29 +40,29 @@ export default class ChatLobby extends React.Component {
   }
 
   componentDidMount() {
-    socket.on('created', this.onCreated);
-    socket.on('joined', this.onJoined);
-    socket.on('full', this.onFull);
-    socket.on('ready', this.onReady);
-    socket.on('candidate', this.onCandidate);
-    socket.on('offer', this.onOffer);
-    socket.on('answer', this.onAnswer);
+    socket.on("created", this.onCreated);
+    socket.on("joined", this.onJoined);
+    socket.on("full", this.onFull);
+    socket.on("ready", this.onReady);
+    socket.on("candidate", this.onCandidate);
+    socket.on("offer", this.onOffer);
+    socket.on("answer", this.onAnswer);
 
-    leaveRoomButton.addEventListener('click', this.handleLeaveRoom);
+    leaveRoomButton.addEventListener("click", this.handleLeaveRoom);
   }
 
   render() {
     return (
-      <div id='video-chat-lobby' style={this.state.style}>
+      <div id="video-chat-lobby" style={this.state.style}>
         <input
-          id='roomName'
-          name='roomName'
-          type='text'
+          id="roomName"
+          name="roomName"
+          type="text"
           value={this.state.roomName}
           onChange={this.handleChange}
-          placeholder='Room Name'
+          placeholder="Room Name"
         />
-        <button type='button' id='join' onClick={this.handleJoin}>
+        <button type="button" id="join" onClick={this.handleJoin}>
           Join
         </button>
       </div>
@@ -70,7 +70,7 @@ export default class ChatLobby extends React.Component {
   }
 
   onCreated() {
-    console.log('callback from socket.on created');
+    console.log("callback from socket.on created");
     creator = true;
     navigator.mediaDevices
       .getUserMedia({
@@ -79,7 +79,7 @@ export default class ChatLobby extends React.Component {
       })
       .then(function (stream) {
         userStream = stream;
-        videoChatRoom.style = 'display:flex';
+        videoChatRoom.style = "display:flex";
         userVideo.srcObject = stream;
         userVideo.onloadedmetadata = function () {
           userVideo.play();
@@ -89,11 +89,11 @@ export default class ChatLobby extends React.Component {
         console.log(err);
         alert("Couldn't access media");
       });
-    this.setState({ style: { display: 'none' } });
+    this.setState({ style: { display: "none" } });
   }
   onJoined() {
     creator = false;
-    console.log('callback from onJoined');
+    console.log("callback from onJoined");
     roomName = this.state.roomName;
     navigator.mediaDevices
       .getUserMedia({
@@ -101,22 +101,22 @@ export default class ChatLobby extends React.Component {
         video: { width: 200, height: 200 },
       })
       .then(function (stream) {
-        videoChatRoom.style = 'display:flex';
+        videoChatRoom.style = "display:flex";
         userStream = stream;
         userVideo.srcObject = stream;
         userVideo.onloadedmetadata = function (e) {
           userVideo.play();
         };
-        socket.emit('ready', roomName);
+        socket.emit("ready", roomName);
       })
       .catch(function (err) {
         alert("Couldn't access media");
       });
-    this.setState({ style: { display: 'none' } });
+    this.setState({ style: { display: "none" } });
   }
 
   onReady() {
-    console.log('callback from socket.on ready');
+    console.log("callback from socket.on ready");
     roomName = this.state.roomName;
     if (creator) {
       rtcPeerConnection = new RTCPeerConnection(iceServers);
@@ -126,9 +126,9 @@ export default class ChatLobby extends React.Component {
       rtcPeerConnection.addTrack(userStream.getTracks()[1], userStream);
       rtcPeerConnection.createOffer(
         function (offer) {
-          console.log('Creating offer');
+          console.log("Creating offer");
           rtcPeerConnection.setLocalDescription(offer);
-          socket.emit('offer', offer, roomName);
+          socket.emit("offer", offer, roomName);
         },
         function (error) {
           console.log(error);
@@ -142,13 +142,13 @@ export default class ChatLobby extends React.Component {
   }
 
   onCandidate(candidate) {
-    console.log('callback from socket.on candidate');
+    console.log("callback from socket.on candidate");
     const icecandidate = new RTCIceCandidate(candidate);
     rtcPeerConnection.addIceCandidate(icecandidate);
   }
 
   onOffer(offer) {
-    console.log('callback from socket.on offer');
+    console.log("callback from socket.on offer");
     roomName = this.state.roomName;
     if (!creator) {
       rtcPeerConnection = new RTCPeerConnection(iceServers);
@@ -159,9 +159,9 @@ export default class ChatLobby extends React.Component {
       rtcPeerConnection.setRemoteDescription(offer);
       rtcPeerConnection.createAnswer(
         function (answer) {
-          console.log('creating answer');
+          console.log("creating answer");
           rtcPeerConnection.setLocalDescription(answer);
-          socket.emit('answer', answer, roomName);
+          socket.emit("answer", answer, roomName);
         },
         function (error) {
           console.log(error);
@@ -171,14 +171,14 @@ export default class ChatLobby extends React.Component {
   }
 
   onAnswer(answer) {
-    console.log('callback from socket.on answer');
+    console.log("callback from socket.on answer");
     rtcPeerConnection.setRemoteDescription(answer);
   }
 
   onIceCandidate(event) {
     if (event.candidate) {
-      console.log('Inside onIceCandidate');
-      socket.emit('candidate', event.candidate, this.state.roomName);
+      console.log("Inside onIceCandidate");
+      socket.emit("candidate", event.candidate, this.state.roomName);
     }
   }
 
@@ -197,7 +197,7 @@ export default class ChatLobby extends React.Component {
   }
 
   onTrack(event) {
-    console.log('inside onTrack');
+    console.log("inside onTrack");
     peerVideo.srcObject = event.streams[0];
     peerVideo.onloadedmetadata = function (e) {
       peerVideo.play();
@@ -206,9 +206,9 @@ export default class ChatLobby extends React.Component {
 
   handleJoin() {
     if (!this.state.roomName) {
-      alert('Please enter a room name');
+      alert("Please enter a room name");
     } else {
-      socket.emit('join', this.state.roomName);
+      socket.emit("join", this.state.roomName);
     }
   }
 
@@ -216,7 +216,7 @@ export default class ChatLobby extends React.Component {
     this.setState({ [event.target.name]: event.target.value });
   }
   handleLeaveRoom() {
-    socket.emit('leave', roomName);
+    socket.emit("leave", roomName);
     if (userVideo.srcObject) {
       userVideo.srcObject.getTracks()[0].stop();
       userVideo.srcObject.getTracks()[1].stop();
@@ -231,7 +231,7 @@ export default class ChatLobby extends React.Component {
       rtcPeerConnection.close();
       rtcPeerConnection = null;
     }
-    videoChatRoom.style = 'display:none';
-    this.setState({ style: { display: 'flex' } });
+    videoChatRoom.style = "display:none";
+    this.setState({ style: { display: "flex" } });
   }
 }
