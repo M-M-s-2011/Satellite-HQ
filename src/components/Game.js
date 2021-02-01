@@ -1,6 +1,6 @@
-import React from "react";
-import Phaser from "phaser";
-import io from "socket.io-client";
+import React from 'react';
+import Phaser from 'phaser';
+import io from 'socket.io-client';
 
 export class Game extends React.Component {
   constructor(props) {
@@ -27,12 +27,6 @@ export class Game extends React.Component {
     this.currentTileset = 1;
     this.videoDistanceThreshold = 70;
     this.inChat = false;
-    this.socket = io({
-      // query === /space/:whatIsWrittenInHere
-      query: {
-        spaceId: this.spaceId,
-      },
-    });
   }
 
   gameInit() {
@@ -40,13 +34,13 @@ export class Game extends React.Component {
     var config = {
       type: Phaser.WEBGL,
       // 100% means the game will take all the page's space
-      width: "100%",
-      height: "100%",
-      backgroundColor: "#2d2d2d",
-      parent: "phaser",
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#2d2d2d',
+      parent: 'phaser',
       pixelArt: true,
       physics: {
-        default: "arcade",
+        default: 'arcade',
         arcade: { gravity: { y: 0 } },
       },
       scene: {
@@ -67,12 +61,12 @@ export class Game extends React.Component {
     const self = this;
     return function () {
       // images ment to be used for the game are loaded here
-      this.load.image("tiles", "/assets/catastrophi_tiles_16.png");
-      this.load.image("tiles_red", "/assets/catastrophi_tiles_16_red.png");
-      this.load.image("tiles_blue", "/assets/catastrophi_tiles_16_blue.png");
-      this.load.tilemapCSV("map", "/assets/catastrophi_level2.csv");
+      this.load.image('tiles', '/assets/catastrophi_tiles_16.png');
+      this.load.image('tiles_red', '/assets/catastrophi_tiles_16_red.png');
+      this.load.image('tiles_blue', '/assets/catastrophi_tiles_16_blue.png');
+      this.load.tilemapCSV('map', '/assets/catastrophi_level2.csv');
       // this can be customized to be our user emoji
-      this.load.spritesheet("player", "/assets/spaceman.png", {
+      this.load.spritesheet('player', '/assets/spaceman.png', {
         frameWidth: 16,
         frameHeight: 16,
       });
@@ -82,7 +76,7 @@ export class Game extends React.Component {
   addPlayer(scene, player, layer) {
     // function responsable of creating the multiplayer feature
     this.player = scene.physics.add
-      .sprite(player.x, player.y, "player", 1)
+      .sprite(player.x, player.y, 'player', 1)
       .setScale(2);
     this.player.setSize(10, 10, false);
     scene.cameras.main.startFollow(this.player);
@@ -92,7 +86,7 @@ export class Game extends React.Component {
   addOtherPlayers(scene, player, layer) {
     // function responsable of creating the multiplayer feature
     const newPlayer = scene.physics.add
-      .sprite(player.x, player.y, "player", 1)
+      .sprite(player.x, player.y, 'player', 1)
       .setScale(2);
     newPlayer.setSize(10, 10, false);
     scene.physics.add.collider(newPlayer, layer);
@@ -121,14 +115,14 @@ export class Game extends React.Component {
         );
         if (!this.inChat) {
           this.inChat = true;
-          this.socket.emit("join", "MyRoom");
+          this.socket.emit('join', 'MyRoom');
         }
         //Add handler for joining video chat
         //Container
         // TODO: Trigger chatroom between players here
       } else {
         // TODO: Remove chatroom between players here
-        this.helpText.setText("");
+        this.helpText.setText('');
       }
     });
   }
@@ -138,9 +132,9 @@ export class Game extends React.Component {
 
     function updateHelpText() {
       self.helpText.setText(
-        "WASD keys to move." +
-          "\nPress 1/2/3 to change the tileset texture." +
-          "\nCurrent texture: " +
+        'WASD keys to move.' +
+          '\nPress 1/2/3 to change the tileset texture.' +
+          '\nCurrent texture: ' +
           self.currentTileset
       );
     }
@@ -163,28 +157,26 @@ export class Game extends React.Component {
 
       // loading a CSV map to give the tileset depth and work with collision
       self.map = this.make.tilemap({
-        key: "map",
+        key: 'map',
         tileWidth: 16,
         tileHeight: 16,
       });
-      var tileset = self.map.addTilesetImage("tiles_red");
+      var tileset = self.map.addTilesetImage('tiles_red');
       var layer = self.map.createLayer(0, tileset, 0, 0);
       layer.setScale(2);
 
       // add more players to the same group
       this.otherPlayers = this.physics.add.group();
 
-      // this.socket = io({
-      //   // query === /space/:whatIsWrittenInHere
-      //   query: {
-      //     spaceId: self.spaceId,
-      //   },
-      // });
-      // console.log("self.socket", self.socket);
-      this.socket = self.socket;
-      this.socket.on("currentPlayers", (players) => {
+      self.socket = io({
+        // query === /space/:whatIsWrittenInHere
+        query: {
+          spaceId: self.spaceId,
+        },
+      });
+      self.socket.on('currentPlayers', (players) => {
         Object.keys(players).forEach((id) => {
-          if (players[id].playerId === this.socket.id) {
+          if (players[id].playerId === self.socket.id) {
             self.addPlayer(this, players[id], layer);
           } else {
             self.addOtherPlayers(this, players[id], layer);
@@ -192,11 +184,11 @@ export class Game extends React.Component {
         });
       });
       // see line 45 on server.js and addOtherPlayers class method
-      this.socket.on("newPlayer", (playerInfo) => {
+      self.socket.on('newPlayer', (playerInfo) => {
         self.addOtherPlayers(this, playerInfo, layer);
       });
       // see line 50 on server.js
-      this.socket.on("userDisconnected", (playerId) => {
+      self.socket.on('userDisconnected', (playerId) => {
         this.otherPlayers.getChildren().forEach((otherPlayer) => {
           if (playerId === otherPlayer.playerId) {
             otherPlayer.destroy();
@@ -204,7 +196,7 @@ export class Game extends React.Component {
         });
       });
       // see line 60 in server.js
-      this.socket.on("playerMoved", (playerInfo) => {
+      self.socket.on('playerMoved', (playerInfo) => {
         this.otherPlayers.getChildren().forEach((otherPlayer) => {
           if (playerInfo.playerId === otherPlayer.playerId) {
             otherPlayer.setPosition(playerInfo.x, playerInfo.y);
@@ -213,16 +205,16 @@ export class Game extends React.Component {
         self.onNearbyPlayers(self.player, this.otherPlayers);
       });
       //SAFEWORD CANTALOUPE
-      this.socket.on("created", function () {
-        let videoChatRoom = document.getElementById("video-chat-room");
-        let userVideo = document.getElementById("user-video");
+      self.socket.on('created', function () {
+        let videoChatRoom = document.getElementById('video-chat-room');
+        let userVideo = document.getElementById('user-video');
         navigator.mediaDevices
           .getUserMedia({
             audio: false,
             video: { width: 200, height: 200 },
           })
           .then(function (stream) {
-            videoChatRoom.style = "display:flex";
+            videoChatRoom.style = 'display:flex';
             userVideo.srcObject = stream;
             userVideo.onloadedmetadata = function (e) {
               userVideo.play();
@@ -233,10 +225,10 @@ export class Game extends React.Component {
           });
       });
 
-      this.socket.on("joined", function () {
+      self.socket.on('joined', function () {
         // creator = false;
-        let videoChatRoom = document.getElementById("video-chat-room");
-        let userVideo = document.getElementById("user-video");
+        let videoChatRoom = document.getElementById('video-chat-room');
+        let userVideo = document.getElementById('user-video');
         navigator.mediaDevices
           .getUserMedia({
             audio: true,
@@ -245,12 +237,12 @@ export class Game extends React.Component {
           .then(function (stream) {
             /* use the stream */
             // userStream = stream;
-            videoChatRoom.style = "display:flex";
+            videoChatRoom.style = 'display:flex';
             userVideo.srcObject = stream;
             userVideo.onloadedmetadata = function (e) {
               userVideo.play();
             };
-            this.socket.emit("ready", "MyRoom");
+            self.socket.emit('ready', 'MyRoom');
           })
           .catch(function (err) {
             /* handle the error */
@@ -262,9 +254,9 @@ export class Game extends React.Component {
 
       // with keys 1 2 and 3 titlesets change image
       this.input.keyboard.on(
-        "keydown-ONE",
+        'keydown-ONE',
         function (event) {
-          var texture = this.sys.textures.get("tiles_red");
+          var texture = this.sys.textures.get('tiles_red');
           self.currentTileset = 1;
           tileset.setImage(texture);
           updateHelpText();
@@ -273,9 +265,9 @@ export class Game extends React.Component {
       );
 
       this.input.keyboard.on(
-        "keydown-TWO",
+        'keydown-TWO',
         function (event) {
-          var texture = this.sys.textures.get("tiles_blue");
+          var texture = this.sys.textures.get('tiles_blue');
           self.currentTileset = 2;
           tileset.setImage(texture);
           updateHelpText();
@@ -284,9 +276,9 @@ export class Game extends React.Component {
       );
 
       this.input.keyboard.on(
-        "keydown-THREE",
+        'keydown-THREE',
         function (event) {
-          var texture = this.sys.textures.get("tiles");
+          var texture = this.sys.textures.get('tiles');
           self.currentTileset = 3;
           tileset.setImage(texture);
           updateHelpText();
@@ -304,7 +296,7 @@ export class Game extends React.Component {
 
       self.debugGraphics = this.add.graphics();
 
-      this.input.keyboard.on("down_67", function (event) {
+      this.input.keyboard.on('down_67', function (event) {
         self.showDebug = !self.showDebug;
         drawDebug();
       });
@@ -317,9 +309,9 @@ export class Game extends React.Component {
         right: Phaser.Input.Keyboard.KeyCodes.D,
       });
 
-      self.helpText = this.add.text(16, 16, "", {
-        fontSize: "20px",
-        fill: "#ffffff",
+      self.helpText = this.add.text(16, 16, '', {
+        fontSize: '20px',
+        fill: '#ffffff',
       });
       self.helpText.setScrollFactor(0);
       updateHelpText();
@@ -352,7 +344,7 @@ export class Game extends React.Component {
             x !== self.player.oldPosition.x ||
             y !== self.player.oldPosition.y
           ) {
-            this.socket.emit("playerMovement", {
+            self.socket.emit('playerMovement', {
               x,
               y,
             });
@@ -377,6 +369,6 @@ export class Game extends React.Component {
 
   render() {
     // phaser target element
-    return <div id="phaser"></div>;
+    return <div id='phaser'></div>;
   }
 }
