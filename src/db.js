@@ -1,8 +1,8 @@
-import firebase from "firebase/app";
+import firebase from "firebase";
 import "firebase/auth";
 import "firebase/firestore";
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyDXsW1-ilF31_tPrpswfC-GsVL1-nAxk0M",
   authDomain: "satellite-hq.firebaseapp.com",
   projectId: "satellite-hq",

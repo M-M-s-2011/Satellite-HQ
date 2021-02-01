@@ -11,38 +11,32 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import "./App.css";
-import Login from "./Login/LoginFunctions";
+import Login from "./Login/Login";
 import GoogleLogin from "./Login/Google-Login";
-
-// function App() {
-//   return (
-//     <div className='App'>
-//       <Router>
-//         <Switch>
-//           <Route exact path='/'>
-//             <Home />
-//           </Route>
-//           <Route exact path='/chat' component={ChatLobby} />
-//           <Route exact path='/space/:id'>
-//             <Space />
-//           </Route>
-//         </Switch>
-//       </Router>
+import VideoChatContainer from "./components/VideoChatContainer";
 
 function App() {
   return (
     <div className="App">
-      <Login />
-      <GoogleLogin />
+      <Router>
+        <Switch>
+          <Route exact path="/video">
+            <VideoChatContainer />
+          </Route>
+          <Route exact path="/chat" component={ChatLobby} />
+          <Route exact path="/space/:id">
+            <Space />
+          </Route>
+        </Switch>
+      </Router>
     </div>
   );
 }
 
-// {
-/* function Home() {
+function Home() {
   // Basic Home Page
   // React Hooks
-  const [spaceId, setSpaceId] = useState('');
+  const [spaceId, setSpaceId] = useState("");
   return (
     <div>
       <input
@@ -52,14 +46,13 @@ function App() {
       <Link to={`/space/${spaceId}`}>Go to space</Link>
     </div>
   );
-} */
-// }
+}
 
-// function Space() {
-//   // We can use the `useParams` hook here to access
-//   // the space id
-//   let { id } = useParams();
-//   return <Game spaceId={id} />;
-// }
+function Space() {
+  // We can use the `useParams` hook here to access
+  // the space id
+  let { id } = useParams();
+  return <Game spaceId={id} />;
+}
 
 export default App;

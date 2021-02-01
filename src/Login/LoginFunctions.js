@@ -21,7 +21,7 @@ const LoginFunc = () => {
   };
 
   const handleLogin = () => {
-    clearErrors();
+    clearInputs();
     db.auth()
       .signInWithEmailPassword(email, password)
       .catch((err) => {
@@ -74,9 +74,6 @@ const LoginFunc = () => {
   });
   return (
     <div>
-      {/* {user ? (
-        <Game />
-      ) : ( */}
       <Login
         email={email}
         setEmail={setEmail}
@@ -89,7 +86,6 @@ const LoginFunc = () => {
         passwordError={passwordError}
         setHasAccount={setHasAccount}
       />
-      {/* )} */}
     </div>
   );
 };

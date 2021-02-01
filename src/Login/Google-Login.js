@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import db from "../db";
 import firebase from "firebase";
+import "firebase/auth";
 
 const GoogleLogin = () => {
   const [isLogin, setIsLogin] = useState(false);
