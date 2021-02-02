@@ -1,10 +1,10 @@
-let socket = io.connect("http://localhost:4000");
-let divVideoChatLobby = document.getElementById("video-chat-lobby");
-let divVideoChat = document.getElementById("video-chat-room");
-let joinButton = document.getElementById("join");
-let userVideo = document.getElementById("user-video");
-let peerVideo = document.getElementById("peer-video");
-let roomInput = document.getElementById("roomName");
+let socket = io.connect('http://localhost:4000');
+let divVideoChatLobby = document.getElementById('video-chat-lobby');
+let divVideoChat = document.getElementById('video-chat-room');
+let joinButton = document.getElementById('join');
+let userVideo = document.getElementById('user-video');
+let peerVideo = document.getElementById('peer-video');
+let roomInput = document.getElementById('roomName');
 let roomName;
 let creator = false;
 let rtcPeerConnection;
@@ -13,23 +13,23 @@ let userStream;
 // Contains the stun server URL we will be using.
 let iceServers = {
   iceServers: [
-    { urls: "stun:stun.services.mozilla.com" },
-    { urls: "stun:stun.l.google.com:19302" },
+    { urls: 'stun:stun.services.mozilla.com' },
+    { urls: 'stun:stun.l.google.com:19302' },
   ],
 };
 
-joinButton.addEventListener("click", function () {
-  if (roomInput.value == "") {
-    alert("Please enter a room name");
+joinButton.addEventListener('click', function () {
+  if (roomInput.value == '') {
+    alert('Please enter a room name');
   } else {
     roomName = roomInput.value;
-    socket.emit("join", roomName);
+    socket.emit('join', roomName);
   }
 });
 
 // Triggered when a room is succesfully created.
 
-socket.on("created", function () {
+socket.on('created', function () {
   creator = true;
 
   navigator.mediaDevices
@@ -40,7 +40,7 @@ socket.on("created", function () {
     .then(function (stream) {
       /* use the stream */
       userStream = stream;
-      divVideoChatLobby.style = "display:none";
+      divVideoChatLobby.style = 'display:none';
       userVideo.srcObject = stream;
       userVideo.onloadedmetadata = function (e) {
         userVideo.play();
@@ -54,7 +54,7 @@ socket.on("created", function () {
 
 // Triggered when a room is succesfully joined.
 
-socket.on("joined", function () {
+socket.on('joined', function () {
   creator = false;
 
   navigator.mediaDevices
@@ -65,12 +65,12 @@ socket.on("joined", function () {
     .then(function (stream) {
       /* use the stream */
       userStream = stream;
-      divVideoChatLobby.style = "display:none";
+      divVideoChatLobby.style = 'display:none';
       userVideo.srcObject = stream;
       userVideo.onloadedmetadata = function (e) {
         userVideo.play();
       };
-      socket.emit("ready", roomName);
+      socket.emit('ready', roomName);
     })
     .catch(function (err) {
       /* handle the error */
@@ -80,13 +80,13 @@ socket.on("joined", function () {
 
 // Triggered when a room is full (meaning has 2 people).
 
-socket.on("full", function () {
+socket.on('full', function () {
   alert("Room is Full, Can't Join");
 });
 
 // Triggered when a peer has joined the room and ready to communicate.
 
-socket.on("ready", function () {
+socket.on('ready', function () {
   if (creator) {
     rtcPeerConnection = new RTCPeerConnection(iceServers);
     rtcPeerConnection.onicecandidate = OnIceCandidateFunction;
@@ -97,7 +97,7 @@ socket.on("ready", function () {
       .createOffer()
       .then((offer) => {
         rtcPeerConnection.setLocalDescription(offer);
-        socket.emit("offer", offer, roomName);
+        socket.emit('offer', offer, roomName);
       })
 
       .catch((error) => {
@@ -108,14 +108,14 @@ socket.on("ready", function () {
 
 // Triggered on receiving an ice candidate from the peer.
 
-socket.on("candidate", function (candidate) {
+socket.on('candidate', function (candidate) {
   let icecandidate = new RTCIceCandidate(candidate);
   rtcPeerConnection.addIceCandidate(icecandidate);
 });
 
 // Triggered on receiving an offer from the person who created the room.
 
-socket.on("offer", function (offer) {
+socket.on('offer', function (offer) {
   if (!creator) {
     rtcPeerConnection = new RTCPeerConnection(iceServers);
     rtcPeerConnection.onicecandidate = OnIceCandidateFunction;
@@ -127,7 +127,7 @@ socket.on("offer", function (offer) {
       .createAnswer()
       .then((answer) => {
         rtcPeerConnection.setLocalDescription(answer);
-        socket.emit("answer", answer, roomName);
+        socket.emit('answer', answer, roomName);
       })
       .catch((error) => {
         console.log(error);
@@ -137,16 +137,16 @@ socket.on("offer", function (offer) {
 
 // Triggered on receiving an answer from the person who joined the room.
 
-socket.on("answer", function (answer) {
+socket.on('answer', function (answer) {
   rtcPeerConnection.setRemoteDescription(answer);
 });
 
 // Implementing the OnIceCandidateFunction which is part of the RTCPeerConnection Interface.
 
 function OnIceCandidateFunction(event) {
-  console.log("Candidate");
+  console.log('Candidate');
   if (event.candidate) {
-    socket.emit("candidate", event.candidate, roomName);
+    socket.emit('candidate', event.candidate, roomName);
   }
 }
 

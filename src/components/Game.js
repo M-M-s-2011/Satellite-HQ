@@ -26,7 +26,20 @@ export class Game extends React.Component {
     this.showDebug = false;
     this.currentTileset = 1;
     this.videoDistanceThreshold = 70;
+    // Chat variables
     this.inChat = false;
+    this.creator = false;
+    this.userStream = null;
+    this.peerVideo = document.getElementById('peer-video');
+    this.OnIceCandidateFunction = this.OnIceCandidateFunction.bind(this);
+    this.OnTrackFunction = this.OnTrackFunction.bind(this);
+    this.rtcPeerConnection = null;
+    this.iceServers = {
+      iceServers: [
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun.l.google.com:19302' },
+      ],
+    };
   }
 
   gameInit() {
@@ -206,15 +219,17 @@ export class Game extends React.Component {
       });
       //SAFEWORD CANTALOUPE
       self.socket.on('created', function () {
+        self.creator = true;
         let videoChatRoom = document.getElementById('video-chat-room');
         let userVideo = document.getElementById('user-video');
         navigator.mediaDevices
           .getUserMedia({
-            audio: false,
+            audio: true,
             video: { width: 200, height: 200 },
           })
           .then(function (stream) {
             videoChatRoom.style = 'display:flex';
+            self.userStream = stream;
             userVideo.srcObject = stream;
             userVideo.onloadedmetadata = function (e) {
               userVideo.play();
@@ -226,17 +241,17 @@ export class Game extends React.Component {
       });
 
       self.socket.on('joined', function () {
-        // creator = false;
+        self.creator = false;
         let videoChatRoom = document.getElementById('video-chat-room');
         let userVideo = document.getElementById('user-video');
         navigator.mediaDevices
           .getUserMedia({
             audio: true,
-            video: { width: 1280, height: 720 },
+            video: { width: 200, height: 200 },
           })
           .then(function (stream) {
             /* use the stream */
-            // userStream = stream;
+            self.userStream = stream;
             videoChatRoom.style = 'display:flex';
             userVideo.srcObject = stream;
             userVideo.onloadedmetadata = function (e) {
@@ -248,6 +263,83 @@ export class Game extends React.Component {
             /* handle the error */
             alert("Couldn't Access User Media");
           });
+      });
+
+      self.socket.on('ready', function () {
+        if (self.creator) {
+          let rtcPeerConnection = new RTCPeerConnection(self.iceServers);
+          self.rtcPeerConnection = rtcPeerConnection;
+          let userStream = self.userStream;
+          console.log(userStream);
+          rtcPeerConnection.onicecandidate = self.OnIceCandidateFunction;
+          rtcPeerConnection.ontrack = self.OnTrackFunction;
+          rtcPeerConnection.addTrack(userStream.getTracks()[0], userStream);
+          rtcPeerConnection.addTrack(userStream.getTracks()[1], userStream);
+          rtcPeerConnection
+            .createOffer()
+            .then((offer) => {
+              rtcPeerConnection.setLocalDescription(offer);
+              self.socket.emit('offer', offer, 'MyRoom');
+            })
+
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+      });
+
+      // Triggered on receiving an ice candidate from the peer.
+
+      self.socket.on('candidate', function (candidate) {
+        let icecandidate = new RTCIceCandidate(candidate);
+        self.rtcPeerConnection.addIceCandidate(icecandidate);
+      });
+      // Triggered on receiving an offer from the person who created the room.
+
+      self.socket.on('offer', function (offer) {
+        if (!self.creator) {
+          let rtcPeerConnection = new RTCPeerConnection(self.iceServers);
+          self.rtcPeerConnection = rtcPeerConnection;
+          rtcPeerConnection.onicecandidate = self.OnIceCandidateFunction;
+          rtcPeerConnection.ontrack = self.OnTrackFunction;
+          rtcPeerConnection.addTrack(
+            self.userStream.getTracks()[0],
+            self.userStream
+          );
+          rtcPeerConnection.addTrack(
+            self.userStream.getTracks()[1],
+            self.userStream
+          );
+          rtcPeerConnection.setRemoteDescription(offer);
+          rtcPeerConnection
+            .createAnswer()
+            .then((answer) => {
+              rtcPeerConnection.setLocalDescription(answer);
+              self.socket.emit('answer', answer, 'MyRoom');
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+      });
+
+      // Triggered on receiving an answer from the person who joined the room.
+
+      self.socket.on('answer', function (answer) {
+        self.rtcPeerConnection.setRemoteDescription(answer);
+      });
+      self.socket.on('leave', function () {
+        self.creator = true;
+        if (self.rtcPeerConnection) {
+          self.rtcPeerConnection.ontrack = null;
+          self.rtcPeerConnection.onicecandidate = null;
+          self.rtcPeerConnection.close();
+          self.rtcPeerConnection = null;
+        }
+        if (self.peerVideo.srcObject) {
+          self.peerVideo.srcObject.getTracks()[0].stop();
+          self.peerVideo.srcObject.getTracks()[1].stop();
+        }
       });
 
       self.map.setCollisionBetween(54, 83);
@@ -359,6 +451,25 @@ export class Game extends React.Component {
       };
 
       self.player && updatePlayer();
+    };
+  }
+
+  // Implementing the OnIceCandidateFunction which is part of the RTCPeerConnection Interface.
+
+  OnIceCandidateFunction(event) {
+    console.log('Candidate');
+    if (event.candidate) {
+      this.socket.emit('candidate', event.candidate, 'MyRoom');
+    }
+  }
+
+  // Implementing the OnTrackFunction which is part of the RTCPeerConnection Interface.
+
+  OnTrackFunction(event) {
+    let peerVideo = this.peerVideo;
+    peerVideo.srcObject = event.streams[0];
+    peerVideo.onloadedmetadata = function (e) {
+      peerVideo.play();
     };
   }
 
